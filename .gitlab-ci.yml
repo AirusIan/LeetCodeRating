@@ -35,4 +35,4 @@ build:
 test:
   stage: test
   script:
-    - echo "✅ 若有測試，請加上 go test ./...，目前僅確保能成功 build"
+    - echo "✅ 若有測試，請加上 go test ./...，目前僅確保能成功 build."
