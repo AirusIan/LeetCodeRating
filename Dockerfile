@@ -16,7 +16,8 @@ COPY . .
 RUN go build -o leetcoderating main.go
 
 # --- 執行階段 ---
-FROM alpine:latest
+FROM alpine:latest AS api
+
 
 WORKDIR /app
 RUN apk add --no-cache ca-certificates

@@ -1,6 +1,5 @@
-# Dockerfile.worker
-
-FROM golang:1.23.9 AS builder
+# --- 建置階段 ---
+FROM golang:1.23.9 AS worker
 
 WORKDIR /app
 
@@ -11,11 +10,12 @@ COPY . .
 
 RUN go build -o worker ./worker/worker.go
 
-# Runtime stage
-FROM debian:bookworm-slim
+# --- 執行階段 ---
+FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/worker .
+COPY --from=worker /app/worker .
+
 
 CMD ["./worker"]
