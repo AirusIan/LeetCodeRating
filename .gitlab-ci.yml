@@ -29,3 +29,4 @@ deploy-worker:
     - shell
   script:
     - kubectl apply -f worker-deployment.yaml
+    
