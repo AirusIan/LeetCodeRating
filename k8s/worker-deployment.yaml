@@ -1,33 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: leetcode-worker
-  labels:
-    app: leetcode-worker
+  name: worker
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: leetcode-worker
+      app: worker
   template:
     metadata:
       labels:
-        app: leetcode-worker
+        app: worker
     spec:
+      hostNetwork: true
       containers:
         - name: worker
-          image: registry.gitlab.com/seang38077-group/leetcode-rating:worker
+          image: leetcoderating-worker:latest
           env:
-            - name: DATABASE_URL
-              value: "postgres://postgres:123@postgres.default.svc.cluster.local:5432/leetcode?sslmode=disable"
             - name: REDIS_URL
-              value: "redis://redis.default.svc.cluster.local:6379"
+              value: "localhost:6379"
             - name: RABBITMQ_URL
-              value: "amqp://guest:guest@rabbitmq.default.svc.cluster.local:5672/"
-          resources:
-            limits:
-              memory: "256Mi"
-              cpu: "500m"
-            requests:
-              memory: "128Mi"
-              cpu: "250m"
+              value: "amqp://guest:guest@localhost:5672/"
+            - name: DATABASE_URL
+              value: "postgres://postgres:123@localhost:5432/leetcode?sslmode=disable"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: worker
+spec:
+  selector:
+    app: worker
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080

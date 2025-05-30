@@ -77,7 +77,6 @@ func StartWorker(ctx context.Context, handler func(task QuestionTask)) {
 	if rabbitURL == "" {
 		rabbitURL = "amqp://guest:guest@localhost:5672/"
 	}
-
 	conn, err := amqp.Dial(rabbitURL)
 	if err != nil {
 		log.Fatalf("❌ 無法連接 RabbitMQ: %v", err)

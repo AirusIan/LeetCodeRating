@@ -1,37 +1,47 @@
 stages:
   - build
-  - deploy
 
 variables:
-  API_IMAGE: registry.gitlab.com/seang38077-group/leetcode-rating:api
-  WORKER_IMAGE: registry.gitlab.com/seang38077-group/leetcode-rating:worker
-
-before_script:
-  - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  API_IMAGE: "$CI_REGISTRY_IMAGE:api"
+  WORKER_IMAGE: "$CI_REGISTRY_IMAGE:worker"
 
 build-api:
   stage: build
+  image: docker:20.10.16
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
   script:
+    - docker info
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - docker build -t $API_IMAGE --target api -f Dockerfile .
     - docker push $API_IMAGE
 
 build-worker:
   stage: build
+  image: docker:20.10.16
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
   script:
+    - docker info
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - docker build -t $WORKER_IMAGE --target worker -f Dockerfile.worker .
     - docker push $WORKER_IMAGE
 
-deploy-to-gke:
-  stage: deploy
-  image: google/cloud-sdk:latest
-  only:
-    - main
-  before_script:
-    - echo "$GCP_SERVICE_KEY" > key.json
-    - gcloud auth activate-service-account --key-file=key.json
-    - gcloud config set project leetcoderating
-    - gcloud config set compute/zone asia-east1-a
-    - gcloud container clusters get-credentials leetcode-cluster
+# 部署到本地 Minikube（使用 kubectl）
+deploy-api:
+  stage: build
+  image: bitnami/kubectl:latest
   script:
-    - kubectl apply -f k8s/api-deployment.yaml
-    - kubectl apply -f k8s/worker-deployment.yaml
+    - kubectl apply -f api-deployment.yaml
+  when: manual
+
+deploy-worker:
+  stage: build
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl apply -f worker-deployment.yaml
+  when: manual

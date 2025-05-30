@@ -20,7 +20,7 @@ func InitPostgres() {
 	var err error
 	DB, err = pgxpool.Connect(Ctx, dbURL)
 	if err != nil {
-		log.Fatalf("無法連接 PostgreSQL: %v", err)
+		log.Fatalf("❌ 無法連接 PostgreSQL: %v", err)
 	}
 
 	_, err = DB.Exec(Ctx, `

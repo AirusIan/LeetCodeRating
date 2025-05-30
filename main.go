@@ -34,16 +34,15 @@ func main() {
 	// 	Password: "",
 	// 	DB:       0,
 	// })
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL == "" {
+		redisURL = "localhost:6379"
+	}
 	rdb = redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_URL"), // 從環境變數讀取
-		Password: "",
+		Addr:     redisURL,
+		Password: "", // 如有密碼記得加密保護
 		DB:       0,
 	})
-
-	// 測試 Redis 是否正常運作
-	if _, err := rdb.Ping(ctx).Result(); err != nil {
-		log.Fatalf("無法連線到 Redis: %v", err)
-	}
 
 	// 建立 Gin 路由
 	r := gin.Default()
