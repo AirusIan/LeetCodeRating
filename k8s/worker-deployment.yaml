@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: leetcode-worker
+  labels:
+    app: leetcode-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: leetcode-worker
+  template:
+    metadata:
+      labels:
+        app: leetcode-worker
+    spec:
+      containers:
+        - name: worker
+          image: registry.gitlab.com/seang38077-group/leetcode-rating:worker
+          env:
+            - name: DATABASE_URL
+              value: "postgres://postgres:123@postgres.default.svc.cluster.local:5432/leetcode?sslmode=disable"
+            - name: REDIS_URL
+              value: "redis://redis.default.svc.cluster.local:6379"
+            - name: RABBITMQ_URL
+              value: "amqp://guest:guest@rabbitmq.default.svc.cluster.local:5672/"
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+            requests:
+              memory: "128Mi"
+              cpu: "250m"

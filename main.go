@@ -29,8 +29,13 @@ type Tag struct {
 
 func main() {
 	// 初始化 Redis 連線
+	// rdb = redis.NewClient(&redis.Options{
+	// 	Addr:     "127.0.0.1:6379", // 明確使用 IPv4 避免連線錯誤
+	// 	Password: "",
+	// 	DB:       0,
+	// })
 	rdb = redis.NewClient(&redis.Options{
-		Addr:     "127.0.0.1:6379", // 明確使用 IPv4 避免連線錯誤
+		Addr:     os.Getenv("REDIS_URL"), // 從環境變數讀取
 		Password: "",
 		DB:       0,
 	})

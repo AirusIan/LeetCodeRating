@@ -1,38 +1,42 @@
-image: golang:1.23.9
-
-services:
-  - name: redis:7
-  - name: postgres:15
-    alias: postgres
-  - name: rabbitmq:3-management
-    alias: rabbitmq
-
-variables:
-  POSTGRES_DB: leetcode
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: 123
-  DATABASE_URL: postgres://postgres:123@postgres:5432/leetcode?sslmode=disable
-  RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
-
 stages:
   - build
-  - test
+  - deploy
 
-before_script:
-  - go mod tidy
+variables:
+  PROJECT_NAME: "leetcode-rating"
+  API_IMAGE: "registry.gitlab.com/seang38077-group/leetcode-rating:api"
+  WORKER_IMAGE: "registry.gitlab.com/seang38077-group/leetcode-rating:worker"
 
-build:
+api-build:
   stage: build
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - mkdir -p bin/
-    - go build -o bin/api main.go
-    - go build -o bin/worker worker/worker.go
-  artifacts:
-    paths:
-      - bin/
-    expire_in: 1 week
+    - docker build -t $API_IMAGE --target api .
+    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin registry.gitlab.com
+    - docker push $API_IMAGE
 
-test:
-  stage: test
+worker-build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - echo "✅ 若有測試，請加上 go test ./...，目前僅確保能成功 build."
+    - docker build -t $WORKER_IMAGE --target worker .
+    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin registry.gitlab.com
+    - docker push $WORKER_IMAGE
+
+.deploy:
+  image: google/cloud-sdk:latest
+  stage: deploy
+  before_script:
+    - echo "$GCP_SERVICE_KEY" | base64 -d > ${CI_PROJECT_DIR}/gcloud-key.json
+    - gcloud auth activate-service-account --key-file=${CI_PROJECT_DIR}/gcloud-key.json
+    - gcloud config set project $GCP_PROJECT_ID
+    - gcloud config set compute/zone $GCP_COMPUTE_ZONE
+    - gcloud container clusters get-credentials $GKE_CLUSTER_NAME
+  script:
+    - kubectl apply -f k8s/api-deployment.yaml
+    - kubectl apply -f k8s/api-service.yaml
+    - kubectl apply -f k8s/worker-deployment.yaml
