@@ -1,47 +1,31 @@
 stages:
   - build
-
-variables:
-  API_IMAGE: "$CI_REGISTRY_IMAGE:api"
-  WORKER_IMAGE: "$CI_REGISTRY_IMAGE:worker"
+  - deploy
 
 build-api:
   stage: build
-  image: docker:20.10.16
-  services:
-    - docker:dind
-  variables:
-    DOCKER_TLS_CERTDIR: ""
+  tags:
+    - shell
   script:
-    - docker info
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - docker build -t $API_IMAGE --target api -f Dockerfile .
-    - docker push $API_IMAGE
+    - docker build -t leetcoderating-api:latest -f Dockerfile .
 
 build-worker:
   stage: build
-  image: docker:20.10.16
-  services:
-    - docker:dind
-  variables:
-    DOCKER_TLS_CERTDIR: ""
+  tags:
+    - shell
   script:
-    - docker info
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - docker build -t $WORKER_IMAGE --target worker -f Dockerfile.worker .
-    - docker push $WORKER_IMAGE
+    - docker build -t leetcoderating-worker:latest -f Dockerfile.worker .
 
-# 部署到本地 Minikube（使用 kubectl）
 deploy-api:
-  stage: build
-  image: bitnami/kubectl:latest
+  stage: deploy
+  tags:
+    - shell
   script:
     - kubectl apply -f api-deployment.yaml
-  when: manual
 
 deploy-worker:
-  stage: build
-  image: bitnami/kubectl:latest
+  stage: deploy
+  tags:
+    - shell
   script:
     - kubectl apply -f worker-deployment.yaml
-  when: manual
