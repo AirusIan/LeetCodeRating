@@ -1,5 +1,5 @@
 # --- 建置階段 ---
-FROM golang:1.23.9 AS worker
+FROM golang:1.23.9 
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ COPY . .
 RUN go build -o worker ./worker/worker.go
 
 # --- 執行階段 ---
-FROM alpine:latest
+FROM alpine:latest AS worker
 
 WORKDIR /app
 

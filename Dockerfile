@@ -23,7 +23,7 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /app/leetcoderating .
-COPY index.html . # 若有前端頁面一併部署（視需要）
+COPY index.html . 
 
 EXPOSE 8080
 
