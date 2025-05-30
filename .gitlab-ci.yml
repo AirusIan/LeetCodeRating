@@ -3,40 +3,35 @@ stages:
   - deploy
 
 variables:
-  PROJECT_NAME: "leetcode-rating"
-  API_IMAGE: "registry.gitlab.com/seang38077-group/leetcode-rating:api"
-  WORKER_IMAGE: "registry.gitlab.com/seang38077-group/leetcode-rating:worker"
+  API_IMAGE: registry.gitlab.com/seang38077-group/leetcode-rating:api
+  WORKER_IMAGE: registry.gitlab.com/seang38077-group/leetcode-rating:worker
 
-api-build:
+before_script:
+  - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+
+build-api:
   stage: build
-  image: docker:latest
-  services:
-    - docker:dind
   script:
-    - docker build -t $API_IMAGE --target api .
-    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin registry.gitlab.com
+    - docker build -t $API_IMAGE --target api -f Dockerfile .
     - docker push $API_IMAGE
 
-worker-build:
+build-worker:
   stage: build
-  image: docker:latest
-  services:
-    - docker:dind
   script:
-    - docker build -t $WORKER_IMAGE --target worker .
-    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin registry.gitlab.com
+    - docker build -t $WORKER_IMAGE --target worker -f Dockerfile.worker .
     - docker push $WORKER_IMAGE
 
-.deploy:
-  image: google/cloud-sdk:latest
+deploy-to-gke:
   stage: deploy
+  image: google/cloud-sdk:latest
+  only:
+    - main
   before_script:
-    - echo "$GCP_SERVICE_KEY" | base64 -d > ${CI_PROJECT_DIR}/gcloud-key.json
-    - gcloud auth activate-service-account --key-file=${CI_PROJECT_DIR}/gcloud-key.json
-    - gcloud config set project $GCP_PROJECT_ID
-    - gcloud config set compute/zone $GCP_COMPUTE_ZONE
-    - gcloud container clusters get-credentials $GKE_CLUSTER_NAME
+    - echo "$GCP_SERVICE_KEY" > key.json
+    - gcloud auth activate-service-account --key-file=key.json
+    - gcloud config set project leetcoderating
+    - gcloud config set compute/zone asia-east1-a
+    - gcloud container clusters get-credentials leetcode-cluster
   script:
     - kubectl apply -f k8s/api-deployment.yaml
-    - kubectl apply -f k8s/api-service.yaml
     - kubectl apply -f k8s/worker-deployment.yaml
