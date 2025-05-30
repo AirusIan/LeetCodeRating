@@ -11,7 +11,7 @@ COPY . .
 RUN go build -o worker ./worker/worker.go
 
 # --- 執行階段 ---
-FROM alpine:latest AS runtime
+FROM alpine:latest AS worker
 
 WORKDIR /app
 
