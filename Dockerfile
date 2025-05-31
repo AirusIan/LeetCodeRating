@@ -12,7 +12,7 @@ RUN go mod download
 # 複製完整原始碼（包含子資料夾）
 COPY . .
 
-# 編譯成靜態執行檔1
+# 編譯成靜態執行檔
 RUN go build -o leetcoderating main.go
 
 # --- 執行階段 ---
