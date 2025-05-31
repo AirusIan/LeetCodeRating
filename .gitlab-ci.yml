@@ -12,7 +12,7 @@ build-api:
   services:
     - docker:dind
   tags:
-    - local
+    - shell
   variables:
     DOCKER_TLS_CERTDIR: ""
   script:
@@ -26,7 +26,7 @@ build-worker:
   services:
     - docker:dind
   tags:
-    - local
+    - shell
   variables:
     DOCKER_TLS_CERTDIR: ""
   script:
@@ -37,7 +37,7 @@ build-worker:
 deploy-to-minikube:
   stage: deploy
   tags:
-    - local
+    - shell
   script:
     - $env:KUBECONFIG = "C:/Users/seang/.kube/config"
     - kubectl apply -f k8s/api-deployment.yaml
