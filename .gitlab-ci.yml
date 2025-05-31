@@ -3,44 +3,42 @@ stages:
   - deploy
 
 variables:
-  API_IMAGE: "$CI_REGISTRY_IMAGE/api:latest"
-  WORKER_IMAGE: "$CI_REGISTRY_IMAGE/worker:latest"
+  API_IMAGE: "$CI_REGISTRY_IMAGE:api"
+  WORKER_IMAGE: "$CI_REGISTRY_IMAGE:worker"
 
-# 建立 API 映像檔並上傳
 build-api:
   stage: build
   image: docker:20.10.16
   services:
     - docker:dind
+  tags:
+    - local
   variables:
     DOCKER_TLS_CERTDIR: ""
-  before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker build -t $API_IMAGE --target api -f Dockerfile .
     - docker push $API_IMAGE
 
-# 建立 Worker 映像檔並上傳
 build-worker:
   stage: build
   image: docker:20.10.16
   services:
     - docker:dind
+  tags:
+    - local
   variables:
     DOCKER_TLS_CERTDIR: ""
-  before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker build -t $WORKER_IMAGE --target worker -f Dockerfile.worker .
     - docker push $WORKER_IMAGE
 
-# 若你想從 GitLab 自動部署，可加入以下 job，否則手動 kubectl apply 即可
 deploy-to-minikube:
   stage: deploy
-  image: bitnami/kubectl:latest
+  tags:
+    - local
   script:
+    - $env:KUBECONFIG = "C:/Users/seang/.kube/config"
     - kubectl apply -f k8s/api-deployment.yaml
     - kubectl apply -f k8s/worker-deployment.yaml
-  only:
-    - main
-  when: manual
