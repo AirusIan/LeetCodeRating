@@ -1,4 +1,4 @@
-# --- 建置階段 ---
+# Build stage
 FROM golang:1.23.9 AS builder
 
 WORKDIR /app
@@ -8,14 +8,15 @@ RUN go mod download
 
 COPY . .
 
+# 🔧 重要：禁用 CGO、強制編譯為 Linux binary
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+
 RUN go build -o worker ./worker/worker.go
 
-# --- 執行階段 ---
-FROM alpine:latest AS worker
+# Runtime stage
+FROM debian:bookworm-slim
 
 WORKDIR /app
-
-RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /app/worker .
 

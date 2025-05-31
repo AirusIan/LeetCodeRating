@@ -2,31 +2,45 @@ stages:
   - build
   - deploy
 
+variables:
+  API_IMAGE: "$CI_REGISTRY_IMAGE/api:latest"
+  WORKER_IMAGE: "$CI_REGISTRY_IMAGE/worker:latest"
+
+# 建立 API 映像檔並上傳
 build-api:
   stage: build
-  tags:
-    - shell
+  image: docker:20.10.16
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
-    - docker build -t leetcoderating-api:latest -f Dockerfile .
+    - docker build -t $API_IMAGE --target api -f Dockerfile .
+    - docker push $API_IMAGE
 
+# 建立 Worker 映像檔並上傳
 build-worker:
   stage: build
-  tags:
-    - shell
+  image: docker:20.10.16
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
-    - docker build -t leetcoderating-worker:latest -f Dockerfile.worker .
+    - docker build -t $WORKER_IMAGE --target worker -f Dockerfile.worker .
+    - docker push $WORKER_IMAGE
 
-deploy-api:
+# 若你想從 GitLab 自動部署，可加入以下 job，否則手動 kubectl apply 即可
+deploy-to-minikube:
   stage: deploy
-  tags:
-    - shell
+  image: bitnami/kubectl:latest
   script:
-    - kubectl apply -f api-deployment.yaml
-
-deploy-worker:
-  stage: deploy
-  tags:
-    - shell
-  script:
-    - kubectl apply -f worker-deployment.yaml
-    
+    - kubectl apply -f k8s/api-deployment.yaml
+    - kubectl apply -f k8s/worker-deployment.yaml
+  only:
+    - main
+  when: manual
