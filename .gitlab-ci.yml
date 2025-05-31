@@ -3,8 +3,9 @@ stages:
   - deploy
 
 variables:
-  API_IMAGE: "$CI_REGISTRY_IMAGE:api"
-  WORKER_IMAGE: "$CI_REGISTRY_IMAGE:worker"
+  API_IMAGE: "registry.gitlab.com/seang38077-group/leetcoderating/leetcoderating-api:latest"
+  WORKER_IMAGE: "registry.gitlab.com/seang38077-group/leetcoderating/leetcoderating-worker:latest"
+
 
 build-api:
   stage: build

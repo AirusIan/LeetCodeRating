@@ -17,7 +17,7 @@ spec:
         - name: gitlab-registry-secret
       containers:
         - name: api
-          image: registry.gitlab.com/seang38077-group/LeetCodeRating/leetcoderating-api:latest
+          image: "registry.gitlab.com/seang38077-group/leetcoderating/leetcoderating-api:latest"
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
