@@ -48,7 +48,7 @@ deploy:
     - kubectl config set-context gitlab --cluster=k8s --user=gitlab --namespace=default
     - kubectl config use-context gitlab
     # Apply configMap first (env)
-    - kubectl apply --validate=false -f k8s/leetcoderating-env.yaml
+    - minikube kubectl -- apply -f k8s/leetcoderating-env.yaml
     # Apply API server deployment
     - kubectl apply -f k8s/api-deployment.yaml
     # Apply Worker deployment
