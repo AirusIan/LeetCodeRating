@@ -53,8 +53,8 @@ func main() {
 	RdbWriter = redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs:        addrs,
 		Password:     password,
-		PoolSize:     500,
-		MinIdleConns: 50,
+		PoolSize:     1000,
+		MinIdleConns: 200,
 		PoolTimeout:  5 * time.Second,
 		DialTimeout:  3 * time.Second,
 		ReadTimeout:  3 * time.Second,
@@ -67,8 +67,8 @@ func main() {
 	RdbReader = redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs:        addrs,
 		Password:     password,
-		PoolSize:     500,
-		MinIdleConns: 50,
+		PoolSize:     1000,
+		MinIdleConns: 200,
 		PoolTimeout:  5 * time.Second,
 		DialTimeout:  3 * time.Second,
 		ReadTimeout:  3 * time.Second,
