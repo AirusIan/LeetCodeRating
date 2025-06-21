@@ -77,19 +77,6 @@ func main() {
 		NewClient:    nil, // <== 加這行
 	})
 
-	// Reader client 發 ReadOnly
-	if err := RdbReader.ReadOnly(ctx).Err(); err != nil {
-		panic("❌ Redis Cluster Reader ReadOnly failed: " + err.Error())
-	}
-
-	if err := RdbWriter.Ping(ctx).Err(); err != nil {
-		panic("❌ Redis Cluster Writer connect failed: " + err.Error())
-	}
-
-	if err := RdbReader.Ping(ctx).Err(); err != nil {
-		panic("❌ Redis Cluster Reader connect failed: " + err.Error())
-	}
-
 	println("✅ Redis Cluster Reader & Writer connected")
 
 	// 建立 Gin 路由
