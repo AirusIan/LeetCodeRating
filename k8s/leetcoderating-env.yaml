@@ -4,7 +4,8 @@ metadata:
   name: leetcoderating-env
   namespace: default
 data:
-  REDIS_ADDRS: "my-redis-cluster-0.my-redis-cluster-headless.default.svc.cluster.local:6379,my-redis-cluster-1.my-redis-cluster-headless.default.svc.cluster.local:6379,my-redis-cluster-2.my-redis-cluster-headless.default.svc.cluster.local:6379,my-redis-cluster-3.my-redis-cluster-headless.default.svc.cluster.local:6379,my-redis-cluster-4.my-redis-cluster-headless.default.svc.cluster.local:6379,my-redis-cluster-5.my-redis-cluster-headless.default.svc.cluster.local:6379"
+  REDIS_ADDRS: my-redis-cluster.default.svc.cluster.local:6379
+
   
   REDIS_PASSWORD: "your-password"
 
