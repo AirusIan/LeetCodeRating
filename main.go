@@ -59,6 +59,8 @@ func main() {
 		DialTimeout:  3 * time.Second,
 		ReadTimeout:  3 * time.Second,
 		WriteTimeout: 3 * time.Second,
+		ClusterSlots: nil, // <== 加這行
+		NewClient:    nil, // <== 加這行
 	})
 
 	// Reader
@@ -71,6 +73,8 @@ func main() {
 		DialTimeout:  3 * time.Second,
 		ReadTimeout:  3 * time.Second,
 		WriteTimeout: 3 * time.Second,
+		ClusterSlots: nil, // <== 加這行
+		NewClient:    nil, // <== 加這行
 	})
 
 	// Reader client 發 ReadOnly
