@@ -6,7 +6,7 @@ variables:
   API_IMAGE: "registry.gitlab.com/seang38077-group/leetcoderating/leetcoderating-api:latest"
   WORKER_IMAGE: "registry.gitlab.com/seang38077-group/leetcoderating/leetcoderating-worker:latest"
 
-
+# build API image
 build-api:
   stage: build
   image: docker:20.10.16
@@ -18,9 +18,10 @@ build-api:
     DOCKER_TLS_CERTDIR: ""
   script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker build -t $API_IMAGE --target api -f Dockerfile .
+    - docker build -t $API_IMAGE -f Dockerfile.api .
     - docker push $API_IMAGE
 
+# build Worker image
 build-worker:
   stage: build
   image: docker:20.10.16
@@ -32,14 +33,23 @@ build-worker:
     DOCKER_TLS_CERTDIR: ""
   script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker build -t $WORKER_IMAGE --target worker -f Dockerfile.worker .
+    - docker build -t $WORKER_IMAGE -f Dockerfile.worker .
     - docker push $WORKER_IMAGE
 
-deploy-to-minikube:
+# deploy to k8s
+deploy:
   stage: deploy
+  image: bitnami/kubectl:latest
   tags:
     - shell
   script:
-    - $env:KUBECONFIG = "C:/Users/seang/.kube/config"
+    - kubectl config set-cluster k8s --server=$K8S_SERVER --insecure-skip-tls-verify=true
+    - kubectl config set-credentials gitlab --token=$K8S_TOKEN
+    - kubectl config set-context gitlab --cluster=k8s --user=gitlab --namespace=default
+    - kubectl config use-context gitlab
+    # Apply configMap first (env)
+    - kubectl apply -f k8s/leetcoderating-env.yaml
+    # Apply API server deployment
     - kubectl apply -f k8s/api-deployment.yaml
+    # Apply Worker deployment
     - kubectl apply -f k8s/worker-deployment.yaml

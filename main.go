@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	rdb *redis.Client
+	rdb redis.UniversalClient
 	ctx = context.Background()
 )
 
@@ -34,15 +34,27 @@ func main() {
 	// 	Password: "",
 	// 	DB:       0,
 	// })
-	redisURL := os.Getenv("REDIS_URL")
-	if redisURL == "" {
-		redisURL = "localhost:6379"
-	}
-	rdb = redis.NewClient(&redis.Options{
-		Addr:     redisURL,
-		Password: "", // 如有密碼記得加密保護
-		DB:       0,
+	// redisURL := os.Getenv("REDIS_URL")
+	// if redisURL == "" {
+	// 	redisURL = "localhost:6379"
+	// }
+	// rdb = redis.NewClient(&redis.Options{
+	// 	Addr:     redisURL,
+	// 	Password: "", // 如有密碼記得加密保護
+	// 	DB:       0,
+	// })
+
+	addrsStr := os.Getenv("REDIS_ADDRS")
+	password := os.Getenv("REDIS_PASSWORD")
+
+	addrs := strings.Split(addrsStr, ",")
+
+	rdb = redis.NewClusterClient(&redis.ClusterOptions{
+		Addrs:    addrs,
+		Password: password,
 	})
+
+	rdb.ReadOnly(ctx) // 讀寫分離
 
 	// 建立 Gin 路由
 	r := gin.Default()

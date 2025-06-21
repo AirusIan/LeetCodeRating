@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: leetcoderating-env
+  namespace: default
+data:
+  REDIS_ADDRS: "my-redis-cluster-0.my-redis-cluster-headless.default.svc.cluster.local:6379,my-redis-cluster-1.my-redis-cluster-headless.default.svc.cluster.local:6379,my-redis-cluster-2.my-redis-cluster-headless.default.svc.cluster.local:6379,my-redis-cluster-3.my-redis-cluster-headless.default.svc.cluster.local:6379,my-redis-cluster-4.my-redis-cluster-headless.default.svc.cluster.local:6379,my-redis-cluster-5.my-redis-cluster-headless.default.svc.cluster.local:6379"
+  
+  REDIS_PASSWORD: "your-password"
+
+  RABBITMQ_URL: amqp://guest:guest@my-rabbitmq.default.svc.cluster.local:5672/
+  DATABASE_URL: "postgres://postgres:123@host.minikube.internal:5432/leetcode?sslmode=disable"
+

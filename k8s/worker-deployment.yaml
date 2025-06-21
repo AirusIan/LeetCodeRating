@@ -1,40 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: worker
+  name: leetcoderating-worker
+  namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: worker
+      app: leetcoderating-worker
   template:
     metadata:
       labels:
-        app: worker
+        app: leetcoderating-worker
     spec:
-      hostNetwork: true
       imagePullSecrets:
         - name: gitlab-registry-secret
       containers:
-        - name: api
+        - name: worker
           image: "registry.gitlab.com/seang38077-group/leetcoderating/leetcoderating-worker:latest"
           imagePullPolicy: Always
-          env:
-            - name: REDIS_URL
-              value: "localhost:6379"
-            - name: RABBITMQ_URL
-              value: "amqp://guest:guest@host.docker.internal:5672/"
-            - name: DATABASE_URL
-              value: "postgres://postgres:123@localhost:5432/leetcode?sslmode=disable"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: worker
-spec:
-  selector:
-    app: worker
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
+          envFrom:
+            - configMapRef:
+                name: leetcoderating-env

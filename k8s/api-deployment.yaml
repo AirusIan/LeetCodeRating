@@ -12,7 +12,6 @@ spec:
       labels:
         app: api
     spec:
-      hostNetwork: true
       imagePullSecrets:
         - name: gitlab-registry-secret
       containers:
@@ -21,13 +20,9 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-          env:
-            - name: REDIS_URL
-              value: "localhost:6379"
-            - name: RABBITMQ_URL
-              value: "amqp://guest:guest@host.docker.internal:5672/"
-            - name: DATABASE_URL
-              value: "postgres://postgres:123@localhost:5432/leetcode?sslmode=disable"
+          envFrom:
+            - configMapRef:
+                name: leetcoderating-env
 ---
 apiVersion: v1
 kind: Service

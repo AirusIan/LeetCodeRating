@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: leetcoderating-env
-  namespace: default
-data:
-  REDIS_URL: "host.minikube.internal:6379"
-  RABBITMQ_URL: "amqp://guest:guest@host.minikube.internal:5672/"
-  DATABASE_URL: "postgres://postgres:123@host.minikube.internal:5432/leetcode?sslmode=disable"
