@@ -19,8 +19,9 @@ import (
 )
 
 var (
-	rdb redis.UniversalClient
-	ctx = context.Background()
+	RdbReader *redis.ClusterClient
+	RdbWriter *redis.ClusterClient
+	ctx       = context.Background()
 )
 
 type Tag struct {
@@ -46,15 +47,46 @@ func main() {
 
 	addrsStr := os.Getenv("REDIS_ADDRS")
 	password := os.Getenv("REDIS_PASSWORD")
-
 	addrs := strings.Split(addrsStr, ",")
 
-	rdb = redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs:    addrs,
-		Password: password,
+	// Writer
+	RdbWriter = redis.NewClusterClient(&redis.ClusterOptions{
+		Addrs:        addrs,
+		Password:     password,
+		PoolSize:     500,
+		MinIdleConns: 50,
+		PoolTimeout:  5 * time.Second,
+		DialTimeout:  3 * time.Second,
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
 	})
 
-	rdb.ReadOnly(ctx) // 讀寫分離
+	// Reader
+	RdbReader = redis.NewClusterClient(&redis.ClusterOptions{
+		Addrs:        addrs,
+		Password:     password,
+		PoolSize:     500,
+		MinIdleConns: 50,
+		PoolTimeout:  5 * time.Second,
+		DialTimeout:  3 * time.Second,
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
+	})
+
+	// Reader client 發 ReadOnly
+	if err := RdbReader.ReadOnly(ctx).Err(); err != nil {
+		panic("❌ Redis Cluster Reader ReadOnly failed: " + err.Error())
+	}
+
+	if err := RdbWriter.Ping(ctx).Err(); err != nil {
+		panic("❌ Redis Cluster Writer connect failed: " + err.Error())
+	}
+
+	if err := RdbReader.Ping(ctx).Err(); err != nil {
+		panic("❌ Redis Cluster Reader connect failed: " + err.Error())
+	}
+
+	println("✅ Redis Cluster Reader & Writer connected")
 
 	// 建立 Gin 路由
 	r := gin.Default()
@@ -81,7 +113,7 @@ func handleQueryRating(c *gin.Context) {
 	redisKey := fmt.Sprintf("rating:%s", slug)
 
 	// 1. 嘗試從 Redis 快取讀取
-	rating, err := rdb.Get(ctx, redisKey).Result()
+	rating, err := RdbReader.Get(ctx, redisKey).Result()
 	if err == nil && rating != "" {
 		c.JSON(http.StatusOK, gin.H{"rating": rating})
 		return
@@ -95,7 +127,7 @@ func handleQueryRating(c *gin.Context) {
 		tags := extractTags(result.Data.Question.TopicTags)
 
 		// 3. 寫入 Redis 快取
-		rdb.Set(ctx, redisKey, fmt.Sprintf("%d", estimated), time.Hour)
+		RdbWriter.Set(ctx, redisKey, fmt.Sprintf("%d", estimated), time.Hour)
 
 		// 4. 封裝並送出任務到 RabbitMQ queue
 		task := mq.QuestionTask{
@@ -119,7 +151,8 @@ func handleQueryRating(c *gin.Context) {
 
 	// 6. 若連 LeetCode 都失敗，標示尚未分析
 	log.Printf("[Queue] 題目 %s 尚未分析，排入佇列待處理", slug)
-	_ = rdb.Set(ctx, redisKey, "", time.Minute*5).Err()
+	_ = RdbWriter.Set(ctx, redisKey, "", 5*time.Minute).Err()
+
 	c.JSON(http.StatusAccepted, gin.H{"status": "pending"})
 }
 
