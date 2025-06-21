@@ -50,3 +50,4 @@ deploy-to-minikube:
 
     # Apply Worker Deployment
     - kubectl apply --validate=false -f k8s/worker-deployment.yaml
+    - kubectl apply -f k8s/ingress.yaml
