@@ -7,6 +7,6 @@ export let options = {
 };
 
 export default function () {
-    http.get('http://localhost:8080/api/question/two-sum');
+    http.get("http://localhost/api/question/two-sum", { headers: { Host: "localhost" } });
     sleep(1);
 }
