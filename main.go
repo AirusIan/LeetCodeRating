@@ -118,7 +118,15 @@ func handleQueryRating(c *gin.Context) {
 		tags := extractTags(result.Data.Question.TopicTags)
 
 		// 3. 寫入 Redis 快取
-		RdbWriter.Set(ctx, redisKey, fmt.Sprintf("%d", estimated), time.Hour)
+		// RdbWriter.Set(ctx, redisKey, fmt.Sprintf("%d", estimated), time.Hour)
+		go func() {
+			err := RdbWriter.Set(ctx, redisKey, fmt.Sprintf("%d", estimated), time.Hour).Err()
+			if err != nil {
+				log.Printf("❌ Redis Set failed: %v", err)
+			} else {
+				log.Printf("✅ Redis Set success: %s", redisKey)
+			}
+		}()
 
 		// 4. 封裝並送出任務到 RabbitMQ queue
 		task := mq.QuestionTask{
